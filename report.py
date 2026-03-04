@@ -34,14 +34,18 @@ def summarize_repo(repo: dict[str, Any]) -> str:
     return "".join(parts)
 
 
-def build_report(papers: list[dict], repos: list[dict]) -> str:
+def build_report(papers: list[dict], repos: list[dict], digest_summary: str = "") -> str:
     """Build a plain-text and HTML-friendly report. Papers sorted by QS rank (best first)."""
     lines = []
     lines.append("Long-read sequencing & metagenomics digest")
     lines.append("=" * 50)
     lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     lines.append("")
-
+    if digest_summary and digest_summary.strip():
+        lines.append("## Weekly digest summary")
+        lines.append("")
+        lines.append(digest_summary.strip())
+        lines.append("")
     lines.append("## Recent papers (last 7 days, sorted by QS rank of first affiliation)")
     lines.append("")
     for p in papers:
@@ -90,18 +94,22 @@ def build_report(papers: list[dict], repos: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def build_html_report(papers: list[dict], repos: list[dict]) -> str:
+def build_html_report(papers: list[dict], repos: list[dict], digest_summary: str = "") -> str:
     """Build HTML report for email body. Papers sorted by QS rank."""
     html_parts = [
         "<!DOCTYPE html><html><head><meta charset='utf-8'>",
         "<style>body{font-family:sans-serif;max-width:720px;margin:1em auto;padding:0 1em;}",
         "a{color:#0969da;} h2{margin-top:1.2em;} ul{list-style:none;padding-left:0;}",
         "li{margin-bottom:1em;border-left:3px solid #ddd;padding-left:0.8em;}",
-        ".meta{color:#656d76;font-size:0.9em;} .source{font-size:0.85em;color:#0969da;}</style></head><body>",
+        ".meta{color:#656d76;font-size:0.9em;} .source{font-size:0.85em;color:#0969da;}",
+        ".digest{background:#f6f8fa;padding:1em;border-radius:6px;margin:1em 0;}</style></head><body>",
         f"<h1>Long-read sequencing & metagenomics digest</h1>",
         f"<p class='meta'>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>",
-        "<h2>Recent papers (last 7 days, by QS rank of first affiliation)</h2><ul>",
     ]
+    if digest_summary and digest_summary.strip():
+        html_parts.append("<h2>Weekly digest summary</h2>")
+        html_parts.append(f"<div class='digest'>{html_escape(digest_summary.strip()).replace(chr(10), '<br>')}</div>")
+    html_parts.append("<h2>Recent papers (last 7 days, by QS rank of first affiliation)</h2><ul>")
     for p in papers:
         title = html_escape(p.get("title", "No title"))
         url = p.get("url", "") or (f"https://pubmed.ncbi.nlm.nih.gov/{p.get('pmid', '')}/" if p.get("pmid") else "#")

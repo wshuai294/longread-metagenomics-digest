@@ -60,17 +60,27 @@ def main() -> int:
 
     papers = sort_papers_by_qs_rank(pubmed_papers + biorxiv_papers)
 
+    digest_summary = ""
+    if papers and (config.GROQ_API_KEY or config.GEMINI_API_KEY):
+        print("Generating weekly digest summary (LLM)...")
+        from llm_summary import get_weekly_digest_summary
+        digest_summary = get_weekly_digest_summary(papers)
+        if digest_summary:
+            print("  Done. Summary added to report.")
+        else:
+            print("  No summary returned (check API key, model, or set DEBUG_LLM=1 for details).")
+
     print("Fetching GitHub repositories...")
     repos = fetchers.fetch_github_repos()
     print(f"  Found {len(repos)} repos.")
 
     pdf_path = Path(args.out) if args.out else report_pdf.get_pdf_output_path()
-    report_pdf.build_pdf_report(papers, repos, pdf_path)
+    report_pdf.build_pdf_report(papers, repos, pdf_path, digest_summary=digest_summary)
     print(f"PDF report written to {pdf_path}")
 
     if args.email:
-        plain = report.build_report(papers, repos)
-        html = report.build_html_report(papers, repos)
+        plain = report.build_report(papers, repos, digest_summary=digest_summary)
+        html = report.build_html_report(papers, repos, digest_summary=digest_summary)
         try:
             send_report(plain, html)
             print(f"Report sent to {config.EMAIL_TO}")

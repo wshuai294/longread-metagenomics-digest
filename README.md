@@ -43,7 +43,7 @@ python main.py
 | **Rank** | Papers are **sorted by institution rank**: **QS** (top 1000) first, then **US News Best Global** if no QS match. Displayed as e.g. "Rank: 5 (QS)" or "Rank: 10 (US News)" or "—". |
 | **Per paper** | **Publish date**, rank, journal name, corresponding author, first affiliation, and **full abstract**. |
 | **Repos** | GitHub repos matching "metagenomics long-read OR nanopore OR pacbio sequencing", sorted by recently updated. |
-| **Report** | **PDF** to `./new_literature/YYYY-MM-DD.pdf` (current directory). Optional: `--email` to also send the report. |
+| **Report** | **PDF** to `./new_literature/YYYY-MM-DD.pdf` (current directory). If `GROQ_API_KEY` or `GEMINI_API_KEY` is set, a **weekly digest summary** (3–5 paragraphs) is generated from all papers and added at the top. Optional: `--email` to also send the report. |
 
 ---
 
@@ -61,6 +61,8 @@ python main.py
 | `DIGEST_MAX_REPOS` | Max GitHub repos | `10` |
 | `GITHUB_TOKEN` | Optional; higher GitHub API rate limit | — |
 | `NCBI_API_KEY` | Optional; higher NCBI rate limit | — |
+| `GROQ_API_KEY` | Optional; free LLM for weekly digest summary ([Groq](https://console.groq.com)) | — |
+| `GEMINI_API_KEY` | Optional; free LLM fallback ([Google AI Studio](https://aistudio.google.com/apikey)) | — |
 
 Time window is fixed at **7 days** (see `config.MAX_DAYS`).
 
@@ -76,6 +78,7 @@ Time window is fixed at **7 days** (see `config.MAX_DAYS`).
 | `report.py` | Full abstract per paper, plain-text and HTML report builders. |
 | `report_pdf.py` | PDF generation (ReportLab); default path `./new_literature/YYYY-MM-DD.pdf`. |
 | `email_sender.py` | SMTP email (used only with `--email`). |
+| `llm_summary.py` | Weekly digest summary via free LLM (Groq or Gemini). |
 | `qs_rank.py` | Institution rank: QS first, US News fallback (top 1000 each). |
 | `qs_rankings.csv` | QS World University Rankings (top ~1300). |
 | `usnews_rankings.csv` | US News Best Global Universities (top 100, fallback when no QS match). |

@@ -41,6 +41,7 @@ def build_pdf_report(
     papers: list[dict[str, Any]],
     repos: list[dict[str, Any]],
     output_path: Path | str,
+    digest_summary: str = "",
 ) -> None:
     """Build and save PDF report to output_path."""
     path = Path(output_path)
@@ -89,7 +90,12 @@ def build_pdf_report(
     story.append(Paragraph(_escape("Long-read sequencing & metagenomics digest"), title_style))
     story.append(Paragraph(_escape(f"Generated: {date_str}"), small_style))
     story.append(Spacer(1, 0.2 * inch))
-
+    if digest_summary and digest_summary.strip():
+        story.append(Paragraph(_escape("Weekly digest summary"), heading_style))
+        for para in digest_summary.strip().split("\n\n"):
+            if para.strip():
+                story.append(Paragraph(_escape(para.strip()), body_style))
+        story.append(Spacer(1, 0.2 * inch))
     story.append(
         Paragraph(
             _escape("Recent papers (last 7 days, sorted by QS rank of first affiliation)"),

@@ -21,12 +21,18 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 # Optional: NCBI API key for higher rate limit (https://www.ncbi.nlm.nih.gov/account/settings/)
 NCBI_API_KEY = os.environ.get("NCBI_API_KEY", "")
 
+# Optional: Free LLM APIs for weekly digest summary (try Groq first, then Gemini)
+# Groq: https://console.groq.com  |  Gemini: https://aistudio.google.com/apikey
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
 # Time window: papers from the last N days (max 7 = one week)
 DEFAULT_DAYS = 7
 MAX_DAYS = 7
 
 # How many items to fetch per source
 MAX_PAPERS = int(os.environ.get("DIGEST_MAX_PAPERS", "15"))
+MAX_BIORXIV = int(os.environ.get("DIGEST_MAX_BIORXIV", "80"))  # fetch more preprints (paginate all pages)
 MAX_REPOS = int(os.environ.get("DIGEST_MAX_REPOS", "10"))
 
 # Report output (optional file path to also save report)

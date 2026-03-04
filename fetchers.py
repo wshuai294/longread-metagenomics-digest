@@ -139,28 +139,42 @@ def _pubmed_efetch(pmids: list[str]) -> list[dict[str, Any]]:
 
 
 def fetch_biorxiv(days_back: int = 7) -> list[dict[str, Any]]:
-    """Fetch recent bioRxiv preprints; filter by long-read + metagenomics keywords."""
+    """Fetch recent bioRxiv preprints; filter by long-read + metagenomics keywords.
+    Paginates through all API pages for the date range to avoid missing preprints.
+    """
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days_back)
     start_str = start_date.strftime("%Y-%m-%d")
     end_str = end_date.strftime("%Y-%m-%d")
     base = "https://api.biorxiv.org/details/biorxiv"
-    keywords = ("long read", "long-read", "nanopore", "pacbio", "metagenomic", "metagenomics")
+    # Require BOTH long-read sequencing AND metagenomics
+    longread_keywords = (
+        "long read", "long-read", "longread",
+        "nanopore", "pacbio", "pac bio", "ont", "minion", "promethion",
+        "third-generation sequencing", "single molecule sequencing",
+    )
+    metagenomics_keywords = (
+        "metagenomic", "metagenomics", "metagenome", "microbiome",
+    )
     out: list[dict[str, Any]] = []
     cursor = 0
     try:
         while True:
-            r = requests.get(f"{base}/{start_str}/{end_str}/{cursor}/json", timeout=25)
+            r = requests.get(f"{base}/{start_str}/{end_str}/{cursor}/json", timeout=45)
             r.raise_for_status()
             data = r.json()
             collection = data.get("collection", [])
             if not collection:
                 break
             for item in collection:
+                if len(out) >= config.MAX_BIORXIV:
+                    break
                 title = (item.get("title") or item.get("preprint_title") or "").strip()
                 abstract = (item.get("abstract") or item.get("preprint_abstract") or "").strip()
                 text = f"{title} {abstract}".lower()
-                if not any(kw in text for kw in keywords):
+                has_longread = any(kw in text for kw in longread_keywords)
+                has_metagenomics = any(kw in text for kw in metagenomics_keywords)
+                if not (has_longread and has_metagenomics):
                     continue
                 doi = (item.get("doi") or item.get("biorxiv_doi") or "").strip()
                 url = f"https://www.biorxiv.org/content/{doi}" if doi else ""
@@ -206,17 +220,14 @@ def fetch_biorxiv(days_back: int = 7) -> list[dict[str, Any]]:
                     "source": "bioRxiv",
                     "url": url,
                 })
-                if len(out) >= config.MAX_PAPERS:
-                    break
-            if len(out) >= config.MAX_PAPERS:
-                break
+            # Paginate: fetch next page until we've seen all preprints in the date range
             cursor += len(collection)
             if len(collection) < 100:
                 break
     except (requests.RequestException, ValueError):
         # API timeout or parse error: return what we have
         pass
-    return out[: config.MAX_PAPERS]
+    return out
 
 
 def fetch_papers(days_back: int = 7) -> list[dict[str, Any]]:
