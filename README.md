@@ -24,7 +24,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-- **Output:** PDF is written to `~/Desktop/New_literature/YYYY-MM-DD.pdf` (folder is created if needed).
+- **Output:** PDF is written to `./new_literature/YYYY-MM-DD.pdf` in the **current working directory** (folder is created if needed). To use another path (e.g. Desktop): `python main.py --out /path/to/report.pdf`.
 - **Skip bioRxiv** (faster, PubMed + GitHub only):  
   `python main.py --no-biorxiv`
 - **Custom PDF path:**  
@@ -43,7 +43,7 @@ python main.py
 | **QS rank** | Papers are **sorted by QS World University Rank** of the first affiliation (top 1000 from bundled CSV). Unmatched institutions show rank "—". |
 | **Per paper** | Journal name, corresponding author, first affiliation, QS rank, and a **one-sentence summary** (&lt;50 words). |
 | **Repos** | GitHub repos matching "metagenomics long-read OR nanopore OR pacbio sequencing", sorted by recently updated. |
-| **Report** | **PDF** to `~/Desktop/New_literature/YYYY-MM-DD.pdf`. Optional: `--email` to also send the report. |
+| **Report** | **PDF** to `./new_literature/YYYY-MM-DD.pdf` (current directory). Optional: `--email` to also send the report. |
 
 ---
 
@@ -74,7 +74,7 @@ Time window is fixed at **7 days** (see `config.MAX_DAYS`).
 | `config.py` | Settings (time window, email, limits) from environment. |
 | `fetchers.py` | PubMed (E-utilities), bioRxiv API, and GitHub API. |
 | `report.py` | One-sentence summary, plain-text and HTML report builders. |
-| `report_pdf.py` | PDF generation (ReportLab); default path `~/Desktop/New_literature/date.pdf`. |
+| `report_pdf.py` | PDF generation (ReportLab); default path `./new_literature/YYYY-MM-DD.pdf`. |
 | `email_sender.py` | SMTP email (used only with `--email`). |
 | `qs_rank.py` | QS rank lookup from first affiliation (top 1000 from CSV). |
 | `qs_rankings.csv` | QS World University Rankings data (top ~1300). |

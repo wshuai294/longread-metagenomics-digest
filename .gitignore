@@ -18,6 +18,7 @@ ENV/
 # Outputs
 report.txt
 *.pdf
+new_literature/
 
 # OS
 .DS_Store

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Long-read sequencing & metagenomics digest: fetch papers + GitHub repos,
-summarize, and generate a PDF report (default: Desktop/New_literature/date.pdf).
+summarize, and generate a PDF report (default: ./new_literature/YYYY-MM-DD.pdf).
 """
 import argparse
 import sys
@@ -39,7 +39,7 @@ def main() -> int:
         "--out",
         type=str,
         default=None,
-        help="PDF output path (default: ~/Desktop/New_literature/YYYY-MM-DD.pdf)",
+        help="PDF output path (default: ./new_literature/YYYY-MM-DD.pdf)",
     )
     args = parser.parse_args()
     days_back = min(max(1, args.days), config.MAX_DAYS)

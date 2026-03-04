@@ -1,5 +1,6 @@
 """
-Generate PDF report. Output: Desktop/New_literature/YYYY-MM-DD.pdf
+Generate PDF report. Default: ./new_literature/YYYY-MM-DD.pdf (current directory).
+Use --out for a custom path (e.g. Desktop if you have write permission).
 """
 from datetime import datetime
 from pathlib import Path
@@ -27,8 +28,10 @@ def _escape(s: str) -> str:
 
 
 def get_pdf_output_path() -> Path:
-    """Default path: ~/Desktop/New_literature/YYYY-MM-DD.pdf"""
-    folder = Path.home() / "Desktop" / "New_literature"
+    """Default path: ./new_literature/YYYY-MM-DD.pdf (current working directory).
+    Avoids macOS permission issues with writing to Desktop.
+    """
+    folder = Path.cwd() / "new_literature"
     folder.mkdir(parents=True, exist_ok=True)
     date_str = datetime.now().strftime("%Y-%m-%d")
     return folder / f"{date_str}.pdf"
