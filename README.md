@@ -1,0 +1,120 @@
+# Long-read sequencing & metagenomics digest
+
+A Python tool that fetches **recent papers** (PubMed + bioRxiv) and **GitHub repositories** on long-read sequencing and metagenomics, then generates a **PDF report** (and optionally emails it).
+
+**Time window:** Last **7 days** (one week). Papers are **sorted by QS World University Rank** of the first affiliation (top 1000). Each entry includes journal, corresponding author, first affiliation, QS rank, and a one-sentence summary (&lt;50 words).
+
+---
+
+## Quick start
+
+### 1. Install dependencies
+
+```bash
+git clone https://github.com/YOUR_USERNAME/longread-metagenomics-digest.git
+cd longread-metagenomics-digest
+pip install -r requirements.txt
+```
+
+(Replace `YOUR_USERNAME` with your GitHub username.)
+
+### 2. Run (generate PDF)
+
+```bash
+python main.py
+```
+
+- **Output:** PDF is written to `~/Desktop/New_literature/YYYY-MM-DD.pdf` (folder is created if needed).
+- **Skip bioRxiv** (faster, PubMed + GitHub only):  
+  `python main.py --no-biorxiv`
+- **Custom PDF path:**  
+  `python main.py --out /path/to/report.pdf`
+- **Also send by email:**  
+  `python main.py --email`  
+  (requires `DIGEST_SMTP_PASSWORD`; see Configuration.)
+
+---
+
+## What it does
+
+| Step | Description |
+|------|-------------|
+| **Papers** | Fetches **PubMed** and **bioRxiv** from the **last 7 days**. Topic: (long read \| nanopore \| pacbio) and (metagenomic \| metagenomics). First affiliation is extracted for both (first author for PubMed; first from API list or corresponding for bioRxiv). |
+| **QS rank** | Papers are **sorted by QS World University Rank** of the first affiliation (top 1000 from bundled CSV). Unmatched institutions show rank "—". |
+| **Per paper** | Journal name, corresponding author, first affiliation, QS rank, and a **one-sentence summary** (&lt;50 words). |
+| **Repos** | GitHub repos matching "metagenomics long-read OR nanopore OR pacbio sequencing", sorted by recently updated. |
+| **Report** | **PDF** to `~/Desktop/New_literature/YYYY-MM-DD.pdf`. Optional: `--email` to also send the report. |
+
+---
+
+## Configuration (environment variables)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DIGEST_EMAIL_TO` | Recipient email (for `--email`) | `wshuai294@gmail.com` |
+| `DIGEST_EMAIL_FROM` | Sender address | same as `DIGEST_EMAIL_TO` |
+| `DIGEST_SMTP_USER` | SMTP login | from-address |
+| `DIGEST_SMTP_PASSWORD` | SMTP password (Gmail: [App Password](https://support.google.com/accounts/answer/185833)) | *(required for `--email`)* |
+| `DIGEST_SMTP_HOST` | SMTP server | `smtp.gmail.com` |
+| `DIGEST_SMTP_PORT` | SMTP port | `587` |
+| `DIGEST_MAX_PAPERS` | Max papers to include | `15` |
+| `DIGEST_MAX_REPOS` | Max GitHub repos | `10` |
+| `GITHUB_TOKEN` | Optional; higher GitHub API rate limit | — |
+| `NCBI_API_KEY` | Optional; higher NCBI rate limit | — |
+
+Time window is fixed at **7 days** (see `config.MAX_DAYS`).
+
+---
+
+## Project layout
+
+| File | Description |
+|------|-------------|
+| `main.py` | Entrypoint: fetch → sort by QS rank → build PDF (and optionally email). |
+| `config.py` | Settings (time window, email, limits) from environment. |
+| `fetchers.py` | PubMed (E-utilities), bioRxiv API, and GitHub API. |
+| `report.py` | One-sentence summary, plain-text and HTML report builders. |
+| `report_pdf.py` | PDF generation (ReportLab); default path `~/Desktop/New_literature/date.pdf`. |
+| `email_sender.py` | SMTP email (used only with `--email`). |
+| `qs_rank.py` | QS rank lookup from first affiliation (top 1000 from CSV). |
+| `qs_rankings.csv` | QS World University Rankings data (top ~1300). |
+| `requirements.txt` | Python dependencies (`requests`, `reportlab`). |
+
+---
+
+## Scheduling (e.g. weekly PDF)
+
+Example cron (e.g. every Monday at 9:00):
+
+```bash
+0 9 * * 1 cd /path/to/longread-metagenomics-digest && python3 main.py
+```
+
+No env vars are required for PDF-only runs.
+
+---
+
+## Pushing to a new public GitHub repo
+
+If you have this project locally and want to publish it:
+
+1. **Create a new repository on GitHub**  
+   Go to [github.com/new](https://github.com/new), choose a name (e.g. `longread-metagenomics-digest`), set visibility to **Public**, and do **not** add a README or .gitignore (you already have them).
+
+2. **Add the remote and push** (replace `YOUR_USERNAME` and `REPO_NAME` with your repo):
+
+   ```bash
+   cd /path/to/cursor_play
+   git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
+   git branch -M main
+   git push -u origin main
+   ```
+
+   Or with SSH:  
+   `git remote add origin git@github.com:YOUR_USERNAME/REPO_NAME.git` then `git push -u origin main`.
+
+---
+
+## License
+
+MIT (or your choice). The QS rankings CSV is from public datasets (e.g. [QS-2022-ranking](https://github.com/hsiaoping-zhang/QS-world-university-rankings)).
