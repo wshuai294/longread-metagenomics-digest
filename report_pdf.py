@@ -11,8 +11,8 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-from report import one_sentence_summary, summarize_repo
-from qs_rank import get_qs_rank
+from report import summarize_repo
+from qs_rank import get_rank_display
 
 
 def _escape(s: str) -> str:
@@ -102,23 +102,25 @@ def build_pdf_report(
         url = p.get("url", "") or (
             f"https://pubmed.ncbi.nlm.nih.gov/{p.get('pmid', '')}/" if p.get("pmid") else ""
         )
-        one_line = _escape(one_sentence_summary(p))
+        abstract = (p.get("abstract") or "").strip() or "(No abstract)"
         aff = (p.get("affiliation") or "").strip()
-        rank = get_qs_rank(aff)
-        rank_display = str(rank) if rank < 9999 else "—"
+        rank_str, rank_source = get_rank_display(aff)
+        rank_label = f"Rank: {rank_str}" + (f" ({rank_source})" if rank_source else "")
         journal = (p.get("journal") or "").strip()
         corr = (p.get("corresponding_author") or "").strip()
+        pub_date = (p.get("pub_date") or "").strip() or "—"
         story.append(Paragraph(f"<b>[{source}]</b> {title}", body_style))
         if url:
             story.append(Paragraph(f'<a href="{_escape(url)}" color="blue">{_escape(url)}</a>', link_style))
-        story.append(Paragraph(_escape(f"QS rank: {rank_display}"), small_style))
+        story.append(Paragraph(_escape(f"Publish date: {pub_date}"), small_style))
+        story.append(Paragraph(_escape(rank_label), small_style))
         if journal:
             story.append(Paragraph(_escape(f"Journal: {journal}"), small_style))
         if corr:
             story.append(Paragraph(_escape(f"Corresponding author: {corr}"), small_style))
         if aff:
             story.append(Paragraph(_escape(f"First affiliation: {aff}"), small_style))
-        story.append(Paragraph(_escape(f"Summary: {one_line}"), small_style))
+        story.append(Paragraph(_escape(f"Abstract: {abstract}"), small_style))
         story.append(Spacer(1, 0.15 * inch))
     if not papers:
         story.append(Paragraph("<i>No new papers in the selected period.</i>", body_style))

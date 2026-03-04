@@ -72,8 +72,31 @@ def _pubmed_efetch(pmids: list[str]) -> list[dict[str, Any]]:
                 ).strip()
             else:
                 abstract = ""
-            year_el = art.find(".//PubDate/Year") or art.find(".//JournalIssue/PubDate/Year")
-            year = (year_el.text or "").strip() if year_el is not None else ""
+            # Publication date (Year, Month, Day when available)
+            pub_date_el = art.find(".//JournalIssue/PubDate") or art.find(".//PubDate")
+            pub_date = ""
+            year = ""
+            _MONTH_MAP = {"jan": "01", "feb": "02", "mar": "03", "apr": "04", "may": "05", "jun": "06",
+                          "jul": "07", "aug": "08", "sep": "09", "oct": "10", "nov": "11", "dec": "12"}
+            if pub_date_el is not None:
+                y_el = pub_date_el.find("Year")
+                m_el = pub_date_el.find("Month")
+                d_el = pub_date_el.find("Day")
+                year = (y_el.text or "").strip() if y_el is not None and y_el.text else ""
+                month = (m_el.text or "").strip() if m_el is not None and m_el.text else ""
+                day = (d_el.text or "").strip() if d_el is not None and d_el.text else ""
+                if year:
+                    pub_date = year
+                    if month:
+                        mm = month.zfill(2) if month.isdigit() else _MONTH_MAP.get(month[:3].lower(), "01")
+                        pub_date = f"{year}-{mm}"
+                        if day and day.isdigit():
+                            pub_date = f"{year}-{mm}-{day.zfill(2)}"
+            if not year:
+                year_el = art.find(".//PubDate/Year") or art.find(".//JournalIssue/PubDate/Year")
+                year = (year_el.text or "").strip() if year_el is not None else ""
+                if year:
+                    pub_date = year
             # Journal name
             journal_el = med.find(".//Journal/Title") or med.find(".//Journal/JT") or art.find(".//Journal/Title")
             journal = (journal_el.text or "").strip() if journal_el is not None and journal_el.text else ""
@@ -103,6 +126,7 @@ def _pubmed_efetch(pmids: list[str]) -> list[dict[str, Any]]:
                 "title": title or "No title",
                 "abstract": abstract or "(No abstract)",
                 "year": year,
+                "pub_date": pub_date,
                 "affiliation": first_aff,
                 "journal": journal,
                 "corresponding_author": corresponding_author,
@@ -163,12 +187,19 @@ def fetch_biorxiv(days_back: int = 7) -> list[dict[str, Any]]:
                         corr_author = authors_str.split(";")[0].strip()
                     elif authors_str:
                         corr_author = str(authors_str).strip()
+                # Publish/preprint date
+                pub_date = (item.get("date") or item.get("preprint_date") or "").strip()
+                if isinstance(pub_date, str) and len(pub_date) >= 10:
+                    pub_date = pub_date[:10]  # YYYY-MM-DD
+                elif not pub_date:
+                    pub_date = start_date.strftime("%Y-%m-%d")
                 out.append({
                     "pmid": "",  # no PMID for preprints
                     "doi": doi,
                     "title": title or "No title",
                     "abstract": abstract or "(No abstract)",
                     "year": start_date.strftime("%Y"),
+                    "pub_date": pub_date,
                     "affiliation": aff,
                     "journal": "bioRxiv (preprint)",
                     "corresponding_author": corr_author,

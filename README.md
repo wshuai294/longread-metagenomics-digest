@@ -40,8 +40,8 @@ python main.py
 | Step | Description |
 |------|-------------|
 | **Papers** | Fetches **PubMed** and **bioRxiv** from the **last 7 days**. Topic: (long read \| nanopore \| pacbio) and (metagenomic \| metagenomics). First affiliation is extracted for both (first author for PubMed; first from API list or corresponding for bioRxiv). |
-| **QS rank** | Papers are **sorted by QS World University Rank** of the first affiliation (top 1000 from bundled CSV). Unmatched institutions show rank "—". |
-| **Per paper** | Journal name, corresponding author, first affiliation, QS rank, and a **one-sentence summary** (&lt;50 words). |
+| **Rank** | Papers are **sorted by institution rank**: **QS** (top 1000) first, then **US News Best Global** if no QS match. Displayed as e.g. "Rank: 5 (QS)" or "Rank: 10 (US News)" or "—". |
+| **Per paper** | **Publish date**, rank, journal name, corresponding author, first affiliation, and **full abstract**. |
 | **Repos** | GitHub repos matching "metagenomics long-read OR nanopore OR pacbio sequencing", sorted by recently updated. |
 | **Report** | **PDF** to `./new_literature/YYYY-MM-DD.pdf` (current directory). Optional: `--email` to also send the report. |
 
@@ -73,11 +73,12 @@ Time window is fixed at **7 days** (see `config.MAX_DAYS`).
 | `main.py` | Entrypoint: fetch → sort by QS rank → build PDF (and optionally email). |
 | `config.py` | Settings (time window, email, limits) from environment. |
 | `fetchers.py` | PubMed (E-utilities), bioRxiv API, and GitHub API. |
-| `report.py` | One-sentence summary, plain-text and HTML report builders. |
+| `report.py` | Full abstract per paper, plain-text and HTML report builders. |
 | `report_pdf.py` | PDF generation (ReportLab); default path `./new_literature/YYYY-MM-DD.pdf`. |
 | `email_sender.py` | SMTP email (used only with `--email`). |
-| `qs_rank.py` | QS rank lookup from first affiliation (top 1000 from CSV). |
-| `qs_rankings.csv` | QS World University Rankings data (top ~1300). |
+| `qs_rank.py` | Institution rank: QS first, US News fallback (top 1000 each). |
+| `qs_rankings.csv` | QS World University Rankings (top ~1300). |
+| `usnews_rankings.csv` | US News Best Global Universities (top 100, fallback when no QS match). |
 | `requirements.txt` | Python dependencies (`requests`, `reportlab`). |
 
 ---
